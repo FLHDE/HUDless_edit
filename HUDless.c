@@ -31,6 +31,7 @@
 
 #define ADDR_LOG    0x45caee	// USER_STORY_STAR
 #define ADDR_MINHUD 0x4d5383
+#define ADDR_TEST_TARGET 0x4E3CE0
 
 
 DWORD dummy;
@@ -45,11 +46,26 @@ DWORD dummy;
   RELOFS( (DWORD)from+1, to )
 
 
+BOOL targetDllLoaded = FALSE;
+
+void __stdcall ToggleTargetWireframe(BOOL show)
+{
+	if (targetDllLoaded)
+	{
+		*(WORD*)(ADDR_TEST_TARGET + 2) = (show ? 0x0 : 0x028F);
+	}
+	else
+	{
+		*(WORD*)(ADDR_TEST_TARGET) = (show ? 0x850F : 0xE990);
+	}
+}
+
+
 NAKED
 void toggle( void )
 {
   __asm {
-	xor	al, al
+	xor	eax, eax
 	cmp	ds:[0x67c280], al	// any modifier keys pressed?
 	jz	done			// no, normal routine
 	cmp	ds:[0x679c0c], al
@@ -61,6 +77,8 @@ void toggle( void )
 	mov	ds:[0x679c0c], al	// the icons
 	mov	ds:[0x679c10], al	// everything else
 	mov	ds:[0x679c40], al	// scroll bars on weapon list
+	push eax
+	call ToggleTargetWireframe
 	stc
   done:
 	ret
@@ -101,15 +119,23 @@ void Log_Hook( void )
   }
 }
 
-
 void Patch( void )
 {
   ProtectX( ADDR_LOG, 5 );
   ProtectX( ADDR_MINHUD, 7 );
+  ProtectX( ADDR_TEST_TARGET, 6 );
 
   *(WORD*)ADDR_MINHUD = 0xF475;
   JMP( ADDR_MINHUD + 2, MinHUD_Hook );
   JMP( ADDR_LOG, Log_Hook );
+
+  if (GetModuleHandle( "HudTarget.dll" ))
+  {
+	  // Restore jne instruction.
+	  *(WORD*)ADDR_TEST_TARGET = 0x850F;
+	  *(DWORD*)(ADDR_TEST_TARGET + 2) = 0x0;
+	  targetDllLoaded = TRUE;
+  }
 }
 
 
