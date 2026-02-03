@@ -32,6 +32,7 @@
 #define ADDR_LOG    0x45caee	// USER_STORY_STAR
 #define ADDR_MINHUD 0x4d5383
 #define ADDR_TEST_TARGET 0x4E3CE0
+#define ADDR_COMM 0x4CD8A0
 
 
 DWORD dummy;
@@ -57,6 +58,15 @@ void __stdcall ToggleTargetWireframe(BOOLEAN show)
 	else
 	{
 		*(WORD*)(ADDR_TEST_TARGET) = (show ? 0x850F : 0xE990);
+	}
+
+	if (show)
+	{
+		*(PBYTE)(ADDR_COMM) = 0x51;
+	}
+	else
+	{
+		*(PBYTE)(ADDR_COMM) = 0xC3;
 	}
 }
 
@@ -124,6 +134,7 @@ void Patch( void )
   ProtectX( ADDR_LOG, 5 );
   ProtectX( ADDR_MINHUD, 7 );
   ProtectX( ADDR_TEST_TARGET, 6 );
+  ProtectX( ADDR_COMM, 1 );
 
   *(WORD*)ADDR_MINHUD = 0xF475;
   JMP( ADDR_MINHUD + 2, MinHUD_Hook );
