@@ -48,7 +48,7 @@ DWORD dummy;
 
 BOOL targetDllLoaded = FALSE;
 
-void __stdcall ToggleTargetWireframe(BOOL show)
+void __stdcall ToggleTargetWireframe(BOOLEAN show)
 {
 	if (targetDllLoaded)
 	{
@@ -65,7 +65,7 @@ NAKED
 void toggle( void )
 {
   __asm {
-	xor	eax, eax
+	xor	al, al
 	cmp	ds:[0x67c280], al	// any modifier keys pressed?
 	jz	done			// no, normal routine
 	cmp	ds:[0x679c0c], al
