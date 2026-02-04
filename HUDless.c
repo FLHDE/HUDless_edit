@@ -33,6 +33,9 @@
 #define ADDR_MINHUD 0x4d5383
 #define ADDR_TEST_TARGET 0x4E3CE0
 #define ADDR_COMM 0x4CD8A0
+#define ADRR_CHAT 0x5A6250
+#define ADDR_NEW_PLAYER 0x46AAF8
+#define ADDR_DEP_PLAYER 0x46AF1E
 
 
 DWORD dummy;
@@ -49,7 +52,7 @@ DWORD dummy;
 
 BOOL targetDllLoaded = FALSE;
 
-void __stdcall ToggleTargetWireframe(BOOLEAN show)
+void STDCALL ToggleAdditionalHudElements(BOOLEAN show)
 {
 	if (targetDllLoaded)
 	{
@@ -63,10 +66,16 @@ void __stdcall ToggleTargetWireframe(BOOLEAN show)
 	if (show)
 	{
 		*(PBYTE)(ADDR_COMM) = 0x51;
+		*(PDWORD)(ADRR_CHAT) = 0x0C24448B;
+		*(PWORD)(ADDR_NEW_PLAYER) = 0x840F;
+		*(PWORD)(ADDR_DEP_PLAYER) = 0x840F;
 	}
 	else
 	{
 		*(PBYTE)(ADDR_COMM) = 0xC3;
+		*(PDWORD)(ADRR_CHAT) = 0x900010C2;
+		*(PWORD)(ADDR_NEW_PLAYER) = 0xE990;
+		*(PWORD)(ADDR_DEP_PLAYER) = 0xE990;
 	}
 }
 
@@ -88,7 +97,7 @@ void toggle( void )
 	mov	ds:[0x679c10], al	// everything else
 	mov	ds:[0x679c40], al	// scroll bars on weapon list
 	push eax
-	call ToggleTargetWireframe
+	call ToggleAdditionalHudElements
 	stc
   done:
 	ret
@@ -135,6 +144,9 @@ void Patch( void )
   ProtectX( ADDR_MINHUD, 7 );
   ProtectX( ADDR_TEST_TARGET, 6 );
   ProtectX( ADDR_COMM, 1 );
+  ProtectX( ADRR_CHAT, 4 );
+  ProtectX( ADDR_NEW_PLAYER, 2 );
+  ProtectX( ADDR_DEP_PLAYER, 2 );
 
   *(WORD*)ADDR_MINHUD = 0xF475;
   JMP( ADDR_MINHUD + 2, MinHUD_Hook );
